@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,6 +17,10 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+
+import org.jibble.simpleftp.SimpleFTP;
+
+import java.io.File;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -96,6 +101,9 @@ public class SignUpActivity extends AppCompatActivity {
 
             statusABoolean = false;
 
+            imageNameString = imagePathString.substring(imagePathString.lastIndexOf("/"));
+            Log.d("SutFriendV1", "imageNameString ==> " + imageNameString);
+
         }
     } // onActivityResult
 
@@ -164,12 +172,36 @@ public class SignUpActivity extends AppCompatActivity {
         builder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                upLoadImageToServer();
                 dialog.dismiss();
             }
         });
         builder.show();
 
     } // confirmData
+
+    private void upLoadImageToServer() {
+        // setup new policy
+        StrictMode.ThreadPolicy threadPolicy = new StrictMode.ThreadPolicy
+                .Builder().permitAll().build();
+        StrictMode.setThreadPolicy(threadPolicy);
+
+        //upLoadImage by FTP
+        try {
+            SimpleFTP simpleFTP = new SimpleFTP();
+            simpleFTP.connect("ftp.swiftcodingthai.com", 21, "Sut@swiftcodingthai.com", "Abc12345");
+            simpleFTP.bin();
+            simpleFTP.cwd("Image");
+            simpleFTP.stor(new File(imagePathString));
+            simpleFTP.disconnect();
+
+            Log.d("SutFriendV1", "Upload Finish");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    } // upLoadImageToServer
 
 
 } // Main Class
