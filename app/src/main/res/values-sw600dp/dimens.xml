@@ -3,8 +3,8 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
-    <dimen name="h1">30sp</dimen>
-    <dimen name="h2">20sp</dimen>
-    <dimen name="icon">150dp</dimen>
-    <dimen name="logo">250dp</dimen>
+    <dimen name="h1">60sp</dimen>
+    <dimen name="h2">40sp</dimen>
+    <dimen name="icon">300dp</dimen>
+    <dimen name="logo">500dp</dimen>
 </resources>

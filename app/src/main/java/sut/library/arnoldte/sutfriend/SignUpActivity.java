@@ -1,12 +1,14 @@
 package sut.library.arnoldte.sutfriend;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +19,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
+
+import com.squareup.okhttp.FormEncodingBuilder;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
 
 import org.jibble.simpleftp.SimpleFTP;
 
@@ -160,9 +169,10 @@ public class SignUpActivity extends AppCompatActivity {
         builder.setIcon(R.drawable.kon48);
         builder.setTitle("ยืนยันการลงทะเบียน");
         builder.setMessage("ชื่อ = " + nameString + "\n" +
-        "ที่อยู่ = " + addressString + "\n" +
-        "phone = " + phoneString + "\n" +
-        "เพศ = " + genderString);
+                "ที่อยู่ = " + addressString + "\n" +
+                "phone = " + phoneString + "\n" +
+                "เพศ = " + genderString + "\n" +
+                "image = " + imageNameString );
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -173,12 +183,66 @@ public class SignUpActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 upLoadImageToServer();
+                upLoadStringToServer();
                 dialog.dismiss();
             }
         });
         builder.show();
 
     } // confirmData
+
+    private void upLoadStringToServer() {
+        SaveUserToServer saveUserToServer = new SaveUserToServer(this);
+        saveUserToServer.execute();
+    } // upLoadStringToServer
+
+    private class SaveUserToServer extends AsyncTask<Void, Void, String> {
+        // Explicit
+        private Context context;
+        private static final String urlPHP = "http://swiftcodingthai.com/Sut/add_user.php";
+
+        public SaveUserToServer(Context context) {
+            this.context = context;
+        } // Constructor
+
+        @Override
+        protected String doInBackground(Void... params) {
+            try {
+                OkHttpClient okHttpClient = new OkHttpClient();
+                RequestBody requestBody = new FormEncodingBuilder()
+                        .add("isAdd", "true")
+                        .add("Name", nameString)
+                        .add("Image", "http://swiftcodingthai.com/Sut/Image" + imageNameString)
+                        .add("Gender", genderString)
+                        .add("Address", addressString)
+                        .add("Phone", phoneString)
+                        .add("User", userString)
+                        .add("Password", passwordString)
+                        .build();
+                Request.Builder builder = new Request.Builder();
+                Request request = builder.url(urlPHP).post(requestBody).build();
+                Response response = okHttpClient.newCall(request).execute();
+                return response.body().string();
+            } catch (Exception e) {
+                return null;
+            }
+        } // doInBackground
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            Log.d("SutFriendV2", "Result ==> " + s);
+
+            if (Boolean.parseBoolean(s)) {
+                Toast.makeText(context, "บันทึกข้อมูลเรียบร้อย", Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                MyAlert myAlert = new MyAlert(context, R.drawable.rat48,
+                        "Message", "Save Error !!!");
+            }
+        } // onPost
+    } // SaveUserToServer
 
     private void upLoadImageToServer() {
         // setup new policy
